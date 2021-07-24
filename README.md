@@ -4,7 +4,7 @@ Proof of Concept of developing backend service by using NodeJS.
 
 ## Setup
 
-- Node version 13.14.0
+- Node version [13.14.0](https://nodejs.org/docs/latest-v13.x/api/)
 
 ## Run the app
 
