@@ -1,23 +1,9 @@
 /**
  * Logger service provides log function to collect logging message
 */
-const loggerEvent = require('./logger-event');
 
-const formatLog = (message) => {
-    let messageString;
-    switch(typeof message) {
-        case String:
-            messageString = message;
-            break;
-        default:
-            messageString = JSON.stringify(message);
-            break;
-    }
-    return `${new Date().toISOString()} ${messageString}`;
-}
+const Logger = require('./logger');
 
 exports.log = (message) => {
-    const messageString = formatLog(message);
-    console.log(messageString);
-    loggerEvent.emitter.emit(loggerEvent.MESSAGE_LOGGED, {type: 'log', message: messageString});
+    Logger.getInstance().log(message);
 };
