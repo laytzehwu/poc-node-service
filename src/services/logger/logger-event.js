@@ -1,3 +1,6 @@
+/**
+ * Logger events provides event emitter and the log event name
+*/
 const EventEmitter = require('events');
 const fileLogger = require('./file-logger');
 const remoteLogger = require('./remote-logger');

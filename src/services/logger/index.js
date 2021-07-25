@@ -1,4 +1,6 @@
-
+/**
+ * Logger service provides log function to collect logging message
+*/
 const loggerEvent = require('./logger-event');
 
 const formatLog = (message) => {
