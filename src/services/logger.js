@@ -1,32 +1,21 @@
 
-const path = require('path');
-const fs = require('fs');
-const config = require('../config');
+const loggerEvent = require('./logger-event');
 
-const getLogsFilename = () => {
-    const today = new Date();
-    let month = today.getMonth() + ''; // Make it string at the first place
-    month = month.length > 1 ? month : `0${month}`;
-    let day = today.getDate() + ''; // Make it string at the first place
-    day.length > 1 ? day : `0${day}`;
-    return `${today.getFullYear()}-${month}-${day}.log`;
+const formatLog = (message) => {
+    let messageString;
+    switch(typeof message) {
+        case String:
+            messageString = message;
+            break;
+        default:
+            messageString = JSON.stringify(message);
+            break;
+    }
+    return `${new Date().toISOString()} ${messageString}`;
 }
 
-//const url = 'http://mylogger.io/log';
-
-module.exports.log = (message) => {
-    console.log(message);
-    const logPath = path.resolve(config.logsPath, `./${getLogsFilename()}`);
-    let fd;
-    try {
-        fd = fs.openSync(logPath, 'a');
-        fs.appendFileSync(fd, message + "\n", 'utf8');
-    } catch (e) {
-        console.error(e);
-    } finally {
-        if (fd !== undefined) {
-            fs.closeSync(fd);
-        }
-    }
-    // TODO: Send an HTTP request
+exports.log = (message) => {
+    const messageString = formatLog(message);
+    console.log(messageString);
+    loggerEvent.emitter.emit(loggerEvent.MESSAGE_LOGGED, {type: 'log', message: messageString});
 };

@@ -5,6 +5,6 @@ const os = require('os');
 const logger = require('./logger');
 
 exports.logStart = () => {
-    logger.log(`App started ${new Date().toISOString()}`);
+    logger.log(`App started`);
     logger.log(`* Under ${os.type()}(${os.version()})`);
 }
