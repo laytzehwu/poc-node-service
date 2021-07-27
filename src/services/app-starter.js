@@ -3,8 +3,18 @@
 */
 const os = require('os');
 const logger = require('./logger');
+const config = require('../config');
+const serverFactory = require('./server-factory');
 
-exports.logStart = () => {
+const port = config.server.port;
+
+const logStart = () => {
     logger.log(`App started`);
     logger.log(`* Under ${os.type()}(${os.version()})`);
+}
+
+exports.start = () => {
+    logStart();
+    serverFactory.getServer().listen(port);
+    logger.log(`* Listen to port: ${port}`);
 }
