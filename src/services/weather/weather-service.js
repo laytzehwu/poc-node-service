@@ -1,8 +1,9 @@
 
 const https = require('https');
 const logger = require('../logger');
+const config = require('../../config');
 
-const apiKey = '7fac81b2676df4ebf79dabd8759a9ce7';
+const apiKey = config.weather.apiKey;
 const baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
 
 class WeatherService {
