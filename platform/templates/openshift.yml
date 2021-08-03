@@ -1,0 +1,213 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: usecase-parameters-ui
+parameters:
+# General
+- name: DOCKER_REGISTRY
+  description: Docker registry that will be prepended to all image names
+
+- name: TARGET_NAMESPACE
+  description: Target namespace
+
+- name: DNS_SUFFIX
+  value: dyn.dl-non-prod.genesaas.io
+
+- name: NODE_LABEL
+  description: Node labels to use
+  value: primary
+
+# Usecase Parameters UI Parameters
+- name: USECASE_PARAMETERS_UI_ROUTE_ID
+  description: Unique route id for the Usecase Parameters UI
+
+- name: ROUTE_ID_DNS_PREFIX
+  description: Prefix to use for route-id routes
+  value: da-saas-
+
+- name: USECASE_PARAMETERS_UI_DEPLOYMENT_NAME
+  description: Usecase Parameters UI Deployment name
+  value: usecase-parameters-ui
+
+- name: USECASE_PARAMETERS_UI_IMAGE_NAME
+  description: Image Name
+
+- name: USECASE_PARAMETERS_UI_REPLICAS
+  description: Number of replicas
+
+- name: USECASE_PARAMETERS_UI_REQUEST_CPU
+  description: Request CPU
+
+- name: USECASE_PARAMETERS_UI_REQUEST_MEMORY
+  description: Request Memory
+
+- name: USECASE_PARAMETERS_UI_LIMIT_CPU
+  description: Limit CPU
+
+- name: USECASE_PARAMETERS_UI_LIMIT_MEMORY
+  description: Limit Memory
+
+- name: USECASE_PARAMETERS_UI_DNS_PREFIX
+  description: External DNS
+  value: usecase-parameters-ui
+
+- name: USECASE_PARAMETERS_UI_SAAS_PORTAL_SERVER_HOST
+  description: SaaS Portal Service Deployment name
+  value: saas-portal-svc
+
+- name: ENVIRONMENT_ROLE
+  description: Use case name
+
+- name: USECASE_PARAMETERS_UI_SAAS_ASSETS_URL
+  description: SaaS Assets URL Prefix
+  value: saas-assets-ui
+
+- name: USECASE_PARAMETERS_UI_LOGIN_URL
+  description: SaaS Login URL Prefix
+  value: login
+
+- name: USECASE_PARAMETERS_UI_USECASE_PARAMETERS_SERVER_HOST
+  description: Parameter Administration Service Deployment name
+  value: parameter-administration-svc
+
+- name: USECASE_PARAMETERS_UI_USECASE_PARAMETERS_SERVER_PORT
+  description: Parameter Administration Service Deployment Port
+  value: "8080"
+
+- name: USECASE_PARAMETERS_UI_USECASE_PARAMETERS_SERVER_PLATFORM_PORT
+  description: Parameter Administration Service Deployment Platform Port
+  value: "8081"
+
+- name: APIGEE_ENABLED
+  description: if enable, base href will be using APIGEE_BASE_URL
+  value: "false"
+
+- name: APIGEE_BASE_URL
+  description: APIGEE_BASE_URL for base href
+
+- name: COOKIE_DOMAIN
+  description: Domain on which cookies are to be set
+
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}-route
+  spec:
+    host: ${USECASE_PARAMETERS_UI_DNS_PREFIX}.${TARGET_NAMESPACE}.${DNS_SUFFIX}
+    to:
+      kind: Service
+      name: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}-svc
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}-url
+    annotations:
+      experian.com/route-id: ${USECASE_PARAMETERS_UI_ROUTE_ID}
+      experian.com/service-type: usecase-parameters-ui
+      haproxy.router.openshift.io/balance: roundrobin
+      haproxy.router.openshift.io/disable_cookies: 'true'
+  spec:
+    host: ${ROUTE_ID_DNS_PREFIX}${USECASE_PARAMETERS_UI_ROUTE_ID}.${DNS_SUFFIX}
+    to:
+      kind: Service
+      name: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}-svc
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}-svc
+  spec:
+    ports:
+      -
+        protocol: TCP
+        port: 8080
+        targetPort: 8081
+    selector:
+      app: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}
+    labels:
+      app: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}
+  spec:
+    strategy:
+      type: Rolling
+      rollingParams:
+        timeoutSeconds: 900
+        maxUnavailable: 5%
+        maxSurge: 50%
+      resources:
+        requests:
+          cpu: 100m
+          memory: 100M
+        limits:
+          cpu: 100m
+          memory: 100M
+    triggers:
+      - type: ConfigChange
+    replicas: ${{USECASE_PARAMETERS_UI_REPLICAS}}
+    selector:
+      app: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}
+    template:
+      metadata:
+        labels:
+          app: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}
+      spec:
+        containers:
+          - name: ${USECASE_PARAMETERS_UI_DEPLOYMENT_NAME}
+            image: "${DOCKER_REGISTRY}/${USECASE_PARAMETERS_UI_IMAGE_NAME}"
+            ports:
+              - containerPort: 8081
+                protocol: TCP
+            livenessProbe:
+              httpGet:
+                path: /index.html
+                port: 8081
+                scheme: HTTP
+              initialDelaySeconds: 30
+            readinessProbe:
+              httpGet:
+                path: /
+                port: 8082
+                scheme: HTTP
+              initialDelaySeconds: 50
+              failureThreshold: 3
+              periodSeconds: 10
+              timeoutSeconds: 10
+            resources:
+              requests:
+                cpu: ${USECASE_PARAMETERS_UI_REQUEST_CPU}
+                memory: ${USECASE_PARAMETERS_UI_REQUEST_MEMORY}
+              limits:
+                cpu: ${USECASE_PARAMETERS_UI_LIMIT_CPU}
+                memory: ${USECASE_PARAMETERS_UI_LIMIT_MEMORY}
+            imagePullPolicy: IfNotPresent
+            env:
+              - name: SAAS_PORTAL_SVC_HOST
+                value: ${USECASE_PARAMETERS_UI_SAAS_PORTAL_SERVER_HOST}
+              - name: SAAS_PORTAL_SVC_PORT
+                value: "8080"
+              - name: USECASE
+                value: ${ENVIRONMENT_ROLE}
+              - name: ASSETS_URL
+                value: "${USECASE_PARAMETERS_UI_SAAS_ASSETS_URL}"
+              - name: LOGIN_URL
+                value: ${USECASE_PARAMETERS_UI_LOGIN_URL}
+              - name: APIGEE_ENABLED
+                value: ${APIGEE_ENABLED}
+              - name: APIGEE_BASE_URL
+                value: "${APIGEE_BASE_URL}${USECASE_PARAMETERS_UI_ROUTE_ID}/"
+              - name: COOKIE_DOMAIN
+                description: Domain on which cookies are to be set - excludes DNS prefix & target namespace
+                value: ${COOKIE_DOMAIN}
+              - name: SAAS_PORTAL_SVC_PLATFORM_PORT
+                value: "8081"
+              - name: USECASE_PARAMETERS_SVC_PLATFORM_PORT
+                value: ${USECASE_PARAMETERS_UI_USECASE_PARAMETERS_SERVER_PLATFORM_PORT}
+              - name: USECASE_PARAMETERS_SVC_HOST
+                value: ${USECASE_PARAMETERS_UI_USECASE_PARAMETERS_SERVER_HOST}
+              - name: USECASE_PARAMETERS_SVC_PORT
+                value: ${USECASE_PARAMETERS_UI_USECASE_PARAMETERS_SERVER_PORT}
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30

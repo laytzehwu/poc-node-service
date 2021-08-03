@@ -1,0 +1,47 @@
+componentsInExecutionOrder:
+- id: namespace
+  metadata: {}
+  type: OPENSHIFT_NAMESPACE
+- id: usecase-parameters-ui
+  metadata: {}
+  type: OPENSHIFT_TEMPLATE
+properties:
+  USECASE_PARAMETERS_UI_REPLICAS:
+    defaultValue: '2'
+    overridable: true
+  USECASE_PARAMETERS_UI_REQUEST_CPU:
+    defaultValue: "'100m'"
+    overridable: true
+  USECASE_PARAMETERS_UI_REQUEST_MEMORY:
+    defaultValue: "'256M'"
+    overridable: true
+  USECASE_PARAMETERS_UI_LIMIT_CPU:
+    defaultValue: "'1'"
+    overridable: true
+  USECASE_PARAMETERS_UI_LIMIT_MEMORY:
+    defaultValue: "'256M'"
+    overridable: true
+  USECASE_PARAMETERS_UI_IMAGE_NAME:
+    defaultValue: "''"
+    overridable: true
+  USECASE_PARAMETERS_UI_ROUTE_ID:
+    defaultValue: routeId
+    overridable: false
+  TARGET_NAMESPACE:
+    defaultValue: service.serviceGroup.name
+    overridable: true
+  USECASE_PARAMETERS_UI_SAAS_ASSETS_URL:
+    defaultValue: "'http://saas-assets-ui.' + service.serviceGroup.name + '.apps.internal.appcanvas.net'"
+    overridable: true
+  USECASE_PARAMETERS_UI_LOGIN_URL:
+    defaultValue: "'http://login.' + service.serviceGroup.name + '.apps.internal.appcanvas.net/'"
+    overridable: true
+  APIGEE_ENABLED:
+    defaultValue: "'false'"
+    overridable: true
+  APIGEE_BASE_URL:
+    defaultValue: "'https://test-us-api.experian.com/decisionanalytics/experianone/'"
+    overridable: true
+  COOKIE_DOMAIN:
+    defaultValue: "'.apps.internal.appcanvas.net'"
+    overridable: true
